@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Board:
 
     """
@@ -7,37 +10,35 @@ class Board:
     a1 b1 c1
     """
     def __init__(self):
-        self.squares = {
-            "a1": ".",
-            "b1": ".",
-            "c1": ".",
-            "a2": ".",
-            "b2": ".",
-            "c2": ".",
-            "a3": ".",
-            "b3": ".",
-            "c3": "."
-        }
+        self.squares = np.zeros(shape=(3, 3))
 
-    def play(self, location, token):
-        self.squares[location] = token
+    def place_token(self, rank, file, token):
+        self.squares[rank][file] = token
+
+    def int_to_token(self, integer):
+        if integer == 0:
+            return "."
+        elif integer == 1:
+            return "x"
+        elif integer == 2:
+            return "o"
 
     def show(self):
-        rank3 = ("3 | ") + \
-            str(self.squares['a3']) + "   " + \
-            str(self.squares['b3']) + "   " + \
-            str(self.squares['c3'])
-        rank2 = ("2 | ") + \
-            str(self.squares['a2']) + "   " + \
-            str(self.squares['b2']) + "   " + \
-            str(self.squares['c2'])
-        rank1 = ("1 | ") + \
-            str(self.squares['a1']) + "   " + \
-            str(self.squares['b1']) + "   " + \
-            str(self.squares['c1'])
+        rank3 = ("2 | ") + \
+            self.int_to_token(self.squares[2][0]) + "   " + \
+            self.int_to_token(self.squares[2][1]) + "   " + \
+            self.int_to_token(self.squares[2][2])
+        rank2 = ("1 | ") + \
+            self.int_to_token(self.squares[1][0]) + "   " + \
+            self.int_to_token(self.squares[1][1]) + "   " + \
+            self.int_to_token(self.squares[1][2])
+        rank1 = ("0 | ") + \
+            self.int_to_token(self.squares[0][0]) + "   " + \
+            self.int_to_token(self.squares[0][1]) + "   " + \
+            self.int_to_token(self.squares[0][2])
         print(rank3)
         print(rank2)
         print(rank1)
         print("    ---------")
-        print("    a   b   c")
+        print("    0   1   2")
         print("\n")
