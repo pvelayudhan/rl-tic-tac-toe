@@ -1,17 +1,13 @@
 from tictactoe.board import Board
-import numpy as np
 
 
 class Game:
 
     def __init__(self):
         self.board = Board()
+        self.turn = 0
+        self.done = False
+        self.winner = None
 
 
-
-#a = Game()
-#
-#print(a.board.squares)
-#
-#np.prod(a.board.squares)
 
