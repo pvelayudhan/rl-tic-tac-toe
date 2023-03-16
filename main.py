@@ -1,15 +1,17 @@
-import tictactoe.board as tb
+import tictactoe as ttt
 
-# Initialize board
-board = tb.Board()
+game = ttt.Game()
 
-# Display board
-board.show()
+game.play(1, 1)
 
-# Play a move
-board.place_token(1, 2, 2)
+game.play(0, 2)
 
-board.show()
+game.play(0, 0)
 
-# Information about a particular square
-board.squares
+game.play(2, 0)
+
+game.play(2, 2)
+
+game.winner
+
+game.play(1, 2)
