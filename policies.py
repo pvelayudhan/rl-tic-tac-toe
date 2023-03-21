@@ -27,6 +27,20 @@ def softmax(x):
     return e_x / e_x.sum(axis=0)
 
 
+# This returns a legal, soft-max'd move
+def choose_move(game, square_probs):
+    legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
+    legal_move_chosen = False
+    soft_probs = softmax(tf.reshape(square_probs, [9]))
+    while legal_move_chosen is False:
+        chosen_move = np.random.choice(np.arange(9), 1, p=soft_probs)[0]
+        if chosen_move in legal_moves:
+            legal_move_chosen = True
+    formatted_move = np.zeros(9, dtype=float)
+    formatted_move[chosen_move] = 1
+    return formatted_move
+
+
 def play_one_move(game, model, loss_fn):
     with tf.GradientTape() as tape:
         formatted_board = game.board.squares.reshape(1, 9)
