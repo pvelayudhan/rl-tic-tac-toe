@@ -13,9 +13,23 @@ model = tf.keras.Sequential([
 
 game = Game()
 
-game.play(2, 0)
+# Win sequence
+game.play(0, 2)
+game.play(1, 2)
+game.play(0, 1)
+game.play(2, 2)
+game.play(0, 0)
 
-game.board.show()
+# Draw sequence
+game.play(0, 2)
+game.play(1, 1)
+game.play(0, 1)
+game.play(0, 0)
+game.play(2, 2)
+game.play(1, 2)
+game.play(1, 0)
+game.play(2, 1)
+game.play(2, 0)
 
 
 #|%%--%%| <nBwOuE3A7p|6rPK8eNKTp>
@@ -40,26 +54,6 @@ def choose_move(game, square_probs):
     formatted_move[chosen_move] = 1
     return formatted_move
 
-
-
-# Win sequence
-game.play(0, 2)
-game.play(1, 2)
-game.play(0, 1)
-game.play(2, 2)
-game.play(0, 0)
-
-
-# Draw sequence
-game.play(0, 2)
-game.play(1, 1)
-game.play(0, 1)
-game.play(0, 0)
-game.play(2, 2)
-game.play(1, 2)
-game.play(1, 0)
-game.play(2, 1)
-game.play(2, 0)
 
 def play_one_move(game, model, loss_fn):
     with tf.GradientTape() as tape:
