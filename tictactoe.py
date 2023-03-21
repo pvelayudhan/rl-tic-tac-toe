@@ -18,21 +18,21 @@ class Board:
             return "o"
 
     def show(self):
-        rank3 = ("2 | ") + \
-            self.int_to_token(self.squares[2][0]) + "   " + \
-            self.int_to_token(self.squares[2][1]) + "   " + \
-            self.int_to_token(self.squares[2][2])
-        rank2 = ("1 | ") + \
-            self.int_to_token(self.squares[1][0]) + "   " + \
-            self.int_to_token(self.squares[1][1]) + "   " + \
-            self.int_to_token(self.squares[1][2])
-        rank1 = ("0 | ") + \
+        rank0 = ("0 | ") + \
             self.int_to_token(self.squares[0][0]) + "   " + \
             self.int_to_token(self.squares[0][1]) + "   " + \
             self.int_to_token(self.squares[0][2])
-        print(rank3)
-        print(rank2)
+        rank1 = ("1 | ") + \
+            self.int_to_token(self.squares[1][0]) + "   " + \
+            self.int_to_token(self.squares[1][1]) + "   " + \
+            self.int_to_token(self.squares[1][2])
+        rank2 = ("2 | ") + \
+            self.int_to_token(self.squares[2][0]) + "   " + \
+            self.int_to_token(self.squares[2][1]) + "   " + \
+            self.int_to_token(self.squares[2][2])
+        print(rank0)
         print(rank1)
+        print(rank2)
         print("    ---------")
         print("    0   1   2")
         print("\n")
