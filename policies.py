@@ -5,7 +5,24 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(9, activation="sigmoid")
 ])
 
-def square_probs_to_action(square_probs):
+
+#|%%--%%| <0uaRz4M2ub|nBwOuE3A7p>
+
+
+game = Game()
+
+game.play(2, 0)
+
+game.board.show()
+
+
+#|%%--%%| <nBwOuE3A7p|6rPK8eNKTp>
+
+# https://stackoverflow.com/a/38250088/16626788
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)
 
 
 def play_one_move(game, model, loss_fn):
