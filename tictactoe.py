@@ -45,6 +45,7 @@ class Game:
         self.squares = self.board.squares
         self.turn = 0
         self.done = False
+        self.reward = -1  # -ve reward for each move, +ve for draw/win
         self.winner = None
         self.board.show()
 
@@ -94,6 +95,14 @@ class Game:
         self.board.place_token(rank, file, token)
         # Check if the game is done or somebody has won
         self.check_board()
+        if self.winner is not None:
+            #print("You won!")
+            self.reward = 20
+        elif self.done is True:
+            #print("It's a draw!")
+            self.reward = 10
         # Update the turn
         self.turn = self.turn + 1
         self.board.show()
+        #print (self.reward)
+        return self.reward, self.done
