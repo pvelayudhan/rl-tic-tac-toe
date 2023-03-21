@@ -55,6 +55,19 @@ def choose_move(game, square_probs):
     return formatted_move
 
 
+# Randomly select a legal move
+def random_move(game):
+    legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
+    legal_move_chosen = False
+    while legal_move_chosen is False:
+        chosen_move = np.random.choice(np.arange(9), 1)[0]
+        if chosen_move in legal_moves:
+            legal_move_chosen = True
+    formatted_move = np.zeros(9, dtype=float)
+    formatted_move[chosen_move] = 1
+    return formatted_move
+
+
 def play_one_move(game, model, loss_fn):
     with tf.GradientTape() as tape:
         formatted_board = game.board.squares.reshape(1, 9)
