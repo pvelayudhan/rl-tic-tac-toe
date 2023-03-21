@@ -1,4 +1,6 @@
+from tictactoe import Game
 import tensorflow as tf
+import numpy as np
 
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(5, activation="relu"),
