@@ -88,3 +88,9 @@ def play_one_step(env, obs, model, loss_fn):
     grads = tape.gradient(loss, model.trainable_variables)
     obs, reward, done, truncated, _ = env.step(int(action))
     return obs, reward, done, truncated, grads
+
+#|%%--%%| <6rPK8eNKTp|wrtgaKWxPI>
+
+
+loss_fn = tf.keras.losses.categorical_crossentropy
+loss_fn = tf.keras.losses.binary_crossentropy
