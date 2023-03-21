@@ -4,7 +4,7 @@ import numpy as np
 class Board:
 
     def __init__(self):
-        self.squares = np.zeros(shape=(3, 3))
+        self.squares = np.zeros(shape=(3, 3), dtype="int")
 
     def place_token(self, rank, file, token):
         self.squares[rank][file] = token
