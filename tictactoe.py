@@ -104,5 +104,4 @@ class Game:
         # Update the turn
         self.turn = self.turn + 1
         self.board.show()
-        #print (self.reward)
         return self.reward, self.done
