@@ -52,6 +52,7 @@ def choose_move(game, square_probs):
             legal_move_chosen = True
     formatted_move = np.zeros(9, dtype=float)
     formatted_move[chosen_move] = 1
+    formatted_move = tf.convert_to_tensor(formatted_move[np.newaxis])
     return formatted_move
 
 
@@ -68,18 +69,20 @@ def random_move(game):
     return formatted_move
 
 
+
 def play_one_move(game, model, loss_fn):
     with tf.GradientTape() as tape:
+        # 1. extract a state that can be fed into model()
         formatted_board = game.board.squares.reshape(1, 9)
-        # 1. Get a prediction from model()
+        # 2. Get a prediction from model()
         square_probs = model(formatted_board)
-        # 2. Pick an action that can be fed into environment
+        # 3. Pick an action that can be fed into environment
         target_square = choose_move(game, square_probs)
-        # Switch the above^ to pull out formatted move as a square, add
-        #  a new function that makes square into rank and file
-        # Next things to do
+        # 4. Define the loss(?)
         loss = tf.reduce_mean(loss_fn(target_square, square_probs))
+    # Calculate the gradients between predicted and actual(?)
     grads = tape.gradient(loss, model.trainable_variables)
+    # Actually play the selected move, collecting the reward and done state
     target_square = np.reshape(target_square, [3, 3])
     rank, file = np.where(target_square == 1)
     reward, done = game.play(rank[0], file[0])
