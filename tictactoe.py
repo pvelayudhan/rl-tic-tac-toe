@@ -77,7 +77,8 @@ class Game:
         # Ensure that the game isn't done
         if (self.done is True):
             print("No more moves can be played. The game is over!")
-            return None
+            self.reward = -1
+            return self.reward, self.done
         # Ensure that the requested move is on the board
         if (rank not in [0, 1, 2] or file not in [0, 1, 2]):
             print("Illegal move. That's off the board!")
