@@ -57,7 +57,7 @@ def choose_move(game, square_probs):
 
 
 # Randomly select a legal move
-def random_move(game):
+def play_random_move(game):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
     while legal_move_chosen is False:
@@ -66,14 +66,18 @@ def random_move(game):
             legal_move_chosen = True
     formatted_move = np.zeros(9, dtype=float)
     formatted_move[chosen_move] = 1
-    return formatted_move
-
+    formatted_move = tf.convert_to_tensor(formatted_move[np.newaxis])
+    target_square = np.reshape(formatted_move, [3, 3])
+    rank, file = np.where(target_square == 1)
+    game.play(rank[0], file[0])
+    return None
 
 
 def play_one_move(game, model, loss_fn):
     with tf.GradientTape() as tape:
         # 1. extract a state that can be fed into model()
         formatted_board = game.board.squares.reshape(1, 9)
+        # ERROR HERE: Formatted boart format errors as a regular array
         # 2. Get a prediction from model()
         square_probs = model(formatted_board)
         # 3. Pick an action that can be fed into environment
@@ -100,9 +104,9 @@ loss_fn = tf.keras.losses.categorical_crossentropy
 
 # Each step = one turn of tic-tac-toe
 # Each "episode" = one whole game of tic-tac-toe
+import random
 
-
-game = Game()
+random.seed(42)
 
 def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
     all_rewards = []
@@ -115,11 +119,11 @@ def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
         #obs, _ = env.reset()
         #print(f"Playing game #{episode}")
         game = Game()
-        for _ in range(n_max_steps):
-            #obs, reward, done, truncated, grads = play_one_step(env, obs, model, loss_fn)
+        for i in range(n_max_steps):
             reward, done, grads = play_one_move(game, model, loss_fn)
             current_rewards.append(reward)
             current_grads.append(grads)
+            play_random_move(game)
             if done:
                 break
         all_rewards.append(current_rewards)
@@ -154,8 +158,8 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
 
 
 
-n_iterations = 10
-n_episodes_per_update = 2
+n_iterations = 20
+n_episodes_per_update = 3
 discount_factor = 0.95
 
 
