@@ -76,7 +76,7 @@ class Game:
     def play(self, rank, file):
         # Ensure that the game isn't done
         if (self.done is True):
-            print("No more moves can be played. The game is over!")
+            #print("No more moves can be played. The game is over!")
             self.reward = -1
             return self.reward, self.done
         # Ensure that the requested move is on the board
