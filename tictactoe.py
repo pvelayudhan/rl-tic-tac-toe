@@ -47,7 +47,7 @@ class Game:
         self.done = False
         self.reward = -1  # -ve reward for each move, +ve for draw/win
         self.winner = None
-        self.board.show()
+        #self.board.show()
 
     def check_board(self):
         # Because the board is represented by a 3x3 np.array and because the
@@ -103,5 +103,5 @@ class Game:
             self.reward = 10
         # Update the turn
         self.turn = self.turn + 1
-        self.board.show()
+        #self.board.show()
         return self.reward, self.done
