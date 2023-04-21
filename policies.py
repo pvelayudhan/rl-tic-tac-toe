@@ -20,16 +20,27 @@ game.play(0, 1)
 game.play(2, 2)  # bot
 game.play(0, 0)
 
+game.board.squares
+
 # Draw sequence
 game.play(0, 2)
+game.board.squares
 game.play(1, 1)
+game.board.squares
 game.play(0, 1)
+game.board.squares
 game.play(0, 0)
+game.board.squares
 game.play(2, 2)
+game.board.squares
 game.play(1, 2)
+game.board.squares
 game.play(1, 0)
+game.board.squares
 game.play(2, 1)
+game.board.squares
 game.play(2, 0)
+game.board.squares
 
 
 #|%%--%%| <nBwOuE3A7p|6rPK8eNKTp>
@@ -61,6 +72,9 @@ def play_random_move(game):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
     while legal_move_chosen is False:
+        # infinite loop happens here
+        print("hi")
+        print(game.done)
         chosen_move = np.random.choice(np.arange(9), 1)[0]
         if chosen_move in legal_moves:
             legal_move_chosen = True
@@ -123,15 +137,21 @@ def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
             reward, done, grads = play_one_move(game, model, loss_fn)
             current_rewards.append(reward)
             current_grads.append(grads)
-            play_random_move(game)
+            _ = play_random_move(game)
             if done:
                 break
+            print(6)
         all_rewards.append(current_rewards)
         all_grads.append(current_grads)
     # all_rewards is a list containing a list of rewards for each episode
     # all_grads is a list containing a list of gradients for each episode
     return all_rewards, all_grads
 
+# Player 1 wins on their turn
+# Player 1 draws on their turn
+# Player 2 wins on their turn
+# Player 2 draws on their turn
+# To-do: figure out the reward logic
 
 # A discounted reward is the reward for the current step plus the reward for
 #  all future steps multiplied by the disocunt factor. For example, if our
@@ -172,6 +192,8 @@ model = tf.keras.Sequential([
 ])
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=0.01)
+
+game = Game()
 
 
 for iteration in range(n_iterations):
