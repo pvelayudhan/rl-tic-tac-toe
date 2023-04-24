@@ -45,9 +45,8 @@ class Game:
         self.squares = self.board.squares
         self.turn = 0
         self.done = False
-        self.reward = -1  # -ve reward for each move, +ve for draw/win
+        self.p1_reward = 0
         self.winner = None
-        #self.board.show()
 
     def check_board(self):
         # Because the board is represented by a 3x3 np.array and because the
@@ -66,26 +65,27 @@ class Game:
             np.prod(np.fliplr(self.board.squares).diagonal())]
         if (1 in product_list):
             self.winner = 1
+            self.p1_reward = 100
             self.done = True
         elif (8 in product_list):
             self.winner = 2
+            self.p1_reward = -100
             self.done = True
-        if (np.prod(self.board.squares) > 0):
+        elif (np.prod(self.board.squares) > 0):
             self.done = True
 
     def play(self, rank, file):
         # Ensure that the game isn't done
         if (self.done is True):
-            #print("No more moves can be played. The game is over!")
-            self.reward = -1
-            return self.reward, self.done
+            # print("No more moves can be played. The game is over!")
+            return None
         # Ensure that the requested move is on the board
         if (rank not in [0, 1, 2] or file not in [0, 1, 2]):
-            print("Illegal move. That's off the board!")
+            # print("Illegal move. That's off the board!")
             return None
         # Ensure that the requested move is on an empty square
         if (self.board.squares[rank][file] > 0):
-            print("Illegal move. That square is occupied!")
+            # print("Illegal move. That square is occupied!")
             return None
         # Assign token based on whether it is the turn of player 1 or player 2
         if (self.turn % 2 == 0):
@@ -94,15 +94,8 @@ class Game:
             token = 2
         # Play the move
         self.board.place_token(rank, file, token)
-        # Check if the game is done or somebody has won
+        # Refresh 'done' state and winner values
         self.check_board()
-        if self.winner is not None:
-            #print("You won!")
-            self.reward = 20
-        elif self.done is True:
-            #print("It's a draw!")
-            self.reward = 10
         # Update the turn
         self.turn = self.turn + 1
-        #self.board.show()
-        return self.reward, self.done
+        return None

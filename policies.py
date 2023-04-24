@@ -1,12 +1,8 @@
 from tictactoe import Game
 import tensorflow as tf
 import numpy as np
-
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(5, activation="relu"),
-    tf.keras.layers.Dense(9, activation="sigmoid")
-])
-
+import random
+import matplotlib.pyplot as plt
 
 #|%%--%%| <0uaRz4M2ub|nBwOuE3A7p>
 
@@ -19,6 +15,10 @@ game.play(1, 2)  # bot
 game.play(0, 1)
 game.play(2, 2)  # bot
 game.play(0, 0)
+
+game.p1_reward
+game.done
+game.winner
 
 game.board.squares
 
@@ -69,12 +69,12 @@ def choose_move(game, square_probs):
 
 # Randomly select a legal move
 def play_random_move(game):
+    if game.done is True:
+        return None
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
     while legal_move_chosen is False:
         # infinite loop happens here
-        print("hi")
-        print(game.done)
         chosen_move = np.random.choice(np.arange(9), 1)[0]
         if chosen_move in legal_moves:
             legal_move_chosen = True
@@ -88,10 +88,12 @@ def play_random_move(game):
 
 
 def play_one_move(game, model, loss_fn):
+    if game.done is True:
+        print("cheese")
+        return None
     with tf.GradientTape() as tape:
         # 1. extract a state that can be fed into model()
         formatted_board = game.board.squares.reshape(1, 9)
-        # ERROR HERE: Formatted boart format errors as a regular array
         # 2. Get a prediction from model()
         square_probs = model(formatted_board)
         # 3. Pick an action that can be fed into environment
@@ -104,8 +106,8 @@ def play_one_move(game, model, loss_fn):
     # Actually play the selected move, collecting the reward and done state
     target_square = np.reshape(target_square, [3, 3])
     rank, file = np.where(target_square == 1)
-    reward, done = game.play(rank[0], file[0])
-    return reward, done, grads
+    game.play(rank[0], file[0])
+    return grads
 
 
 #|%%--%%| <6rPK8eNKTp|SzXI15gBzx>
@@ -118,10 +120,6 @@ loss_fn = tf.keras.losses.categorical_crossentropy
 
 # Each step = one turn of tic-tac-toe
 # Each "episode" = one whole game of tic-tac-toe
-import random
-
-random.seed(42)
-
 def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
     all_rewards = []
     all_grads = []
@@ -130,17 +128,18 @@ def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
         current_rewards = []
         current_grads = []
         #2. Initialize a new game
-        #obs, _ = env.reset()
         #print(f"Playing game #{episode}")
         game = Game()
         for i in range(n_max_steps):
-            reward, done, grads = play_one_move(game, model, loss_fn)
+            grads = play_one_move(game, model, loss_fn)
+            play_random_move(game)
+            reward = game.p1_reward
+            done = game.done
             current_rewards.append(reward)
             current_grads.append(grads)
-            _ = play_random_move(game)
             if done:
                 break
-            print(6)
+        print(episode)
         all_rewards.append(current_rewards)
         all_grads.append(current_grads)
     # all_rewards is a list containing a list of rewards for each episode
@@ -173,20 +172,23 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
     flat_rewards = np.concatenate(all_discounted_rewards)
     reward_mean = flat_rewards.mean()
     reward_std = flat_rewards.std()
+    # This can cause division by zero error
     return [(discounted_rewards - reward_mean) / reward_std
             for discounted_rewards in all_discounted_rewards]
 
 
 
-n_iterations = 20
-n_episodes_per_update = 3
+n_iterations = 300
+n_episodes_per_update = 20
 discount_factor = 0.95
 
 
 #|%%--%%| <1sGtfgIBy2|kbUk7tZ9l2>
 
+random.seed(42)
 
 model = tf.keras.Sequential([
+    tf.keras.layers.Dense(5, activation="relu"),
     tf.keras.layers.Dense(5, activation="relu"),
     tf.keras.layers.Dense(9, activation="sigmoid")
 ])
@@ -195,14 +197,15 @@ optimizer = tf.keras.optimizers.Nadam(learning_rate=0.01)
 
 game = Game()
 
-
+plot_rewards = []
 for iteration in range(n_iterations):
-    print(f"{iteration + 1} / {n_iterations}")
     all_rewards, all_grads = play_multiple_episodes(game, n_episodes_per_update, model, loss_fn)
     # extra code – displays some debug info during training
     total_rewards = sum(map(sum, all_rewards))
+    plot_rewards.append(total_rewards / n_episodes_per_update) 
     print(f"\rIteration: {iteration + 1}/{n_iterations},"
           f" mean rewards: {total_rewards / n_episodes_per_update:.1f}", end="")
+    print("")
 
     all_final_rewards = discount_and_normalize_rewards(all_rewards,
                                                        discount_factor)
@@ -215,36 +218,53 @@ for iteration in range(n_iterations):
         all_mean_grads.append(mean_grads)
     optimizer.apply_gradients(zip(all_mean_grads, model.trainable_variables))
 
+a = np.array(plot_rewards) / n_episodes_per_update
+
+plt.plot(a)
+plt.show()
+
 #|%%--%%| <lCUWqS6p3n|dFrmdtjX0e>
 
 
-
 game = Game()
-
+game.p1_reward
+game.done
 game.board.show()
-
 play_one_move(game, model, loss_fn)
-
+game.p1_reward
+game.done
 game.board.show()
-
-game.play(1, 1)
-
+play_random_move(game)
+game.p1_reward
+game.done
 game.board.show()
-
 play_one_move(game, model, loss_fn)
-
+game.p1_reward
+game.done
 game.board.show()
-
-game.play(2, 2)
-
-play_one_move(game, model, loss_fn)
-
+play_random_move(game)
+game.p1_reward
+game.done
 game.board.show()
-
-game.play(2, 1)
-
 play_one_move(game, model, loss_fn)
-
+game.p1_reward
+game.done
+game.board.show()
+play_random_move(game)
+game.p1_reward
+game.done
+game.board.show()
+play_one_move(game, model, loss_fn)
+game.p1_reward
+game.done
+game.board.show()
+play_random_move(game)
+game.p1_reward
+game.done
+game.board.show()
+play_one_move(game, model, loss_fn)
+game.p1_reward
+game.done
 game.board.show()
 
 
@@ -254,3 +274,5 @@ game.play(0, 2)
 play_one_move(game, model, loss_fn)
 
 
+
+plt.plot
