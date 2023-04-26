@@ -65,13 +65,14 @@ class Game:
             np.prod(np.fliplr(self.board.squares).diagonal())]
         if (1 in product_list):
             self.winner = 1
-            self.p1_reward = 100
+            self.p1_reward = 1
             self.done = True
         elif (8 in product_list):
             self.winner = 2
-            self.p1_reward = -100
+            self.p1_reward = 0
             self.done = True
         elif (np.prod(self.board.squares) > 0):
+            self.p1_reward = 0.5
             self.done = True
 
     def play(self, rank, file):

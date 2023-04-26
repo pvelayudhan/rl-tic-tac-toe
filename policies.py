@@ -178,8 +178,13 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
 
 
 
-n_iterations = 300
-n_episodes_per_update = 20
+#n_iterations = 150
+#n_episodes_per_update = 20
+#discount_factor = 0.95
+
+
+n_iterations = 1000
+n_episodes_per_update = 5
 discount_factor = 0.95
 
 
@@ -188,8 +193,7 @@ discount_factor = 0.95
 random.seed(42)
 
 model = tf.keras.Sequential([
-    tf.keras.layers.Dense(5, activation="relu"),
-    tf.keras.layers.Dense(5, activation="relu"),
+    tf.keras.layers.Dense(64, activation="relu"),
     tf.keras.layers.Dense(9, activation="sigmoid")
 ])
 
