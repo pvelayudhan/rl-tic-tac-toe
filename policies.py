@@ -9,18 +9,21 @@ import matplotlib.pyplot as plt
 
 game = Game()
 
+game.board.show()
+
 # Win sequence
 game.play(0, 2)
-game.play(1, 2)  # bot
+game.play(1, 2)
 game.play(0, 1)
-game.play(2, 2)  # bot
-game.play(0, 0)
+game.play(2, 2)
+game.play(1, 1)
+game.play(2, 1)
+
 
 game.p1_reward
 game.done
 game.winner
 
-game.board.squares
 
 # Draw sequence
 game.play(0, 2)
@@ -51,12 +54,17 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum(axis=0)
 
+def ewanmax(x):
+    x = np.asarray(x).astype('float64')
+    return x / np.sum(x)
 
 # This returns a legal, soft-max'd move
 def choose_move(game, square_probs):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
-    soft_probs = softmax(tf.reshape(square_probs, [9]))
+    #soft_probs = softmax(tf.reshape(square_probs, [9]))
+    soft_probs = ewanmax(tf.reshape(square_probs, [9]))
+    print(np.sum(soft_probs))
     while legal_move_chosen is False:
         chosen_move = np.random.choice(np.arange(9), 1, p=soft_probs)[0]
         if chosen_move in legal_moves:
@@ -120,7 +128,7 @@ loss_fn = tf.keras.losses.categorical_crossentropy
 
 # Each step = one turn of tic-tac-toe
 # Each "episode" = one whole game of tic-tac-toe
-def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
+def play_multiple_episodes(n_episodes, model, loss_fn, n_max_steps=9):
     all_rewards = []
     all_grads = []
     #1. Loop through many games of ttt
@@ -130,6 +138,13 @@ def play_multiple_episodes(game, n_episodes, model, loss_fn, n_max_steps=9):
         #2. Initialize a new game
         #print(f"Playing game #{episode}")
         game = Game()
+        # Win sequence
+        game.play(0, 2)
+        game.play(1, 2)
+        game.play(0, 1)
+        game.play(2, 2)
+        game.play(1, 1)
+        game.play(2, 1)
         for i in range(n_max_steps):
             grads = play_one_move(game, model, loss_fn)
             play_random_move(game)
@@ -173,8 +188,12 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
     reward_mean = flat_rewards.mean()
     reward_std = flat_rewards.std()
     # This can cause division by zero error
-    return [(discounted_rewards - reward_mean) / reward_std
-            for discounted_rewards in all_discounted_rewards]
+    #print("apple")
+    #print(reward_std)
+    #print("banana")
+    return all_discounted_rewards
+    #return [(discounted_rewards - reward_mean) / reward_std
+    #        for discounted_rewards in all_discounted_rewards]
 
 
 
@@ -183,8 +202,8 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
 #discount_factor = 0.95
 
 
-n_iterations = 1000
-n_episodes_per_update = 5
+n_iterations = 100
+n_episodes_per_update = 10
 discount_factor = 0.95
 
 
@@ -199,11 +218,9 @@ model = tf.keras.Sequential([
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=0.01)
 
-game = Game()
-
 plot_rewards = []
 for iteration in range(n_iterations):
-    all_rewards, all_grads = play_multiple_episodes(game, n_episodes_per_update, model, loss_fn)
+    all_rewards, all_grads = play_multiple_episodes(n_episodes_per_update, model, loss_fn)
     # extra code – displays some debug info during training
     total_rewards = sum(map(sum, all_rewards))
     plot_rewards.append(total_rewards / n_episodes_per_update) 
@@ -227,7 +244,47 @@ a = np.array(plot_rewards) / n_episodes_per_update
 plt.plot(a)
 plt.show()
 
-#|%%--%%| <lCUWqS6p3n|dFrmdtjX0e>
+#|%%--%%| <lCUWqS6p3n|TmfE7N4eBV>
+
+game = Game()
+game.play(0, 2)
+game.play(1, 2)
+game.play(0, 1)
+game.play(2, 2)
+game.play(1, 1)
+game.play(2, 1)
+
+
+
+model_guesses = model(game.board.squares.reshape(1, 9))
+
+np.reshape(model_guesses, [3, 3])
+
+
+trained_model_guesses = model(game.board.squares.reshape(1, 9))
+
+
+
+
+np.reshape(trained_model_guesses, [3, 3])
+
+guess = tf.reshape(trained_model_guesses, [9])
+
+guess / np.sum(guess)
+
+np.reshape(softmax(tf.reshape(trained_model_guesses, [9])), [3, 3])
+
+
+model2 = tf.keras.Sequential([
+    tf.keras.layers.Dense(64, activation="relu"),
+    tf.keras.layers.Dense(9, activation="sigmoid")
+])
+
+
+#|%%--%%| <TmfE7N4eBV|od7Xv8cOj1>
+
+
+
 
 
 game = Game()
