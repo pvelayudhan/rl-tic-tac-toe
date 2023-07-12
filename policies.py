@@ -82,7 +82,6 @@ def play_random_move(game):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
     while legal_move_chosen is False:
-        # infinite loop happens here
         chosen_move = np.random.choice(np.arange(9), 1)[0]
         if chosen_move in legal_moves:
             legal_move_chosen = True
