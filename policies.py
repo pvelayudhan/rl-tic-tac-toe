@@ -62,9 +62,10 @@ def ewanmax(x):
 def choose_move(game, square_probs):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
-    #soft_probs = softmax(tf.reshape(square_probs, [9]))
-    soft_probs = ewanmax(tf.reshape(square_probs, [9]))
-    print(np.sum(soft_probs))
+    soft_probs = softmax(tf.reshape(square_probs, [9]))
+    #soft_probs = ewanmax(tf.reshape(square_probs, [9]))
+    #print(np.sum(soft_probs))
+    #print(soft_probs)
     while legal_move_chosen is False:
         chosen_move = np.random.choice(np.arange(9), 1, p=soft_probs)[0]
         if chosen_move in legal_moves:
@@ -153,7 +154,7 @@ def play_multiple_episodes(n_episodes, model, loss_fn, n_max_steps=9):
             current_grads.append(grads)
             if done:
                 break
-        print(episode)
+        #print(episode)
         all_rewards.append(current_rewards)
         all_grads.append(current_grads)
     # all_rewards is a list containing a list of rewards for each episode
@@ -201,8 +202,8 @@ def discount_and_normalize_rewards(all_rewards, discount_factor):
 #discount_factor = 0.95
 
 
-n_iterations = 100
-n_episodes_per_update = 10
+n_iterations = 1000
+n_episodes_per_update = 50
 discount_factor = 0.95
 
 
@@ -253,7 +254,7 @@ game.play(2, 2)
 game.play(1, 1)
 game.play(2, 1)
 
-
+game.board.squares
 
 model_guesses = model(game.board.squares.reshape(1, 9))
 
@@ -335,4 +336,23 @@ play_one_move(game, model, loss_fn)
 
 
 
-plt.plot
+game = Game()
+game.board.show()
+
+# Win sequence
+game.play(0, 2)
+game.play(1, 2)
+game.play(0, 1)
+game.play(2, 2)
+game.play(1, 1)
+game.play(2, 1)
+
+game.board.show()
+
+
+formatted_board = game.board.squares.reshape(1, 9)
+
+# 2. Get a prediction from model()
+square_probs = model(formatted_board)
+
+choose_move(game, square_probs)
