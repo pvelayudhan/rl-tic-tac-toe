@@ -54,18 +54,20 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum(axis=0)
 
+
 def ewanmax(x):
     x = np.asarray(x).astype('float64')
     return x / np.sum(x)
+
 
 # This returns a legal, soft-max'd move
 def choose_move(game, square_probs):
     legal_moves = np.where(np.reshape(game.squares, [9]) == 0)[0]
     legal_move_chosen = False
     soft_probs = softmax(tf.reshape(square_probs, [9]))
-    #soft_probs = ewanmax(tf.reshape(square_probs, [9]))
-    #print(np.sum(soft_probs))
-    #print(soft_probs)
+    # soft_probs = ewanmax(tf.reshape(square_probs, [9]))
+    # print(np.sum(soft_probs))
+    # print(soft_probs)
     while legal_move_chosen is False:
         chosen_move = np.random.choice(np.arange(9), 1, p=soft_probs)[0]
         if chosen_move in legal_moves:
@@ -106,7 +108,7 @@ def play_one_move(game, model, loss_fn):
         square_probs = model(formatted_board)
         # 3. Pick an action that can be fed into environment
         target_square = choose_move(game, square_probs)
-        #print(square_probs)
+        # print(square_probs)
         # 4. Define the loss(?)
         loss = tf.reduce_mean(loss_fn(target_square, square_probs))
     # Calculate the gradients between predicted and actual(?)
@@ -131,8 +133,8 @@ loss_fn = tf.keras.losses.categorical_crossentropy
 def play_multiple_episodes(n_episodes, model, loss_fn, n_max_steps=9):
     all_rewards = []
     all_grads = []
-    #1. Loop through many games of ttt
-    for episode in range(n_episodes):
+    # 1. Loop through many games of ttt
+    for _ in range(n_episodes):
         current_rewards = []
         current_grads = []
         #2. Initialize a new game
@@ -145,7 +147,7 @@ def play_multiple_episodes(n_episodes, model, loss_fn, n_max_steps=9):
         game.play(2, 2)
         game.play(1, 1)
         game.play(2, 1)
-        for i in range(n_max_steps):
+        for _ in range(n_max_steps):
             grads = play_one_move(game, model, loss_fn)
             play_random_move(game)
             reward = game.p1_reward
@@ -154,7 +156,7 @@ def play_multiple_episodes(n_episodes, model, loss_fn, n_max_steps=9):
             current_grads.append(grads)
             if done:
                 break
-        #print(episode)
+        # print(episode)
         all_rewards.append(current_rewards)
         all_grads.append(current_grads)
     # all_rewards is a list containing a list of rewards for each episode
@@ -223,7 +225,7 @@ for iteration in range(n_iterations):
     all_rewards, all_grads = play_multiple_episodes(n_episodes_per_update, model, loss_fn)
     # extra code – displays some debug info during training
     total_rewards = sum(map(sum, all_rewards))
-    plot_rewards.append(total_rewards / n_episodes_per_update) 
+    plot_rewards.append(total_rewards / n_episodes_per_update)
     print(f"\rIteration: {iteration + 1}/{n_iterations},"
           f" mean rewards: {total_rewards / n_episodes_per_update:.1f}", end="")
     print("")
