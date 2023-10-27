@@ -2,7 +2,6 @@
 
 from tictactoe import Game
 
-
 outcomes = []
 
 for i in range(100000):
