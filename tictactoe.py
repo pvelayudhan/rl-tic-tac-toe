@@ -119,4 +119,3 @@ class Game:
         rank, file = np.where(target_square == 1)
         self.play(rank[0], file[0])
         return None
-
