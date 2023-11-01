@@ -1,6 +1,7 @@
 from tictactoe import Game
 import numpy as np
 import random
+import tensorflow as tf
 
 class RandomAgent:
     def play(self, game):

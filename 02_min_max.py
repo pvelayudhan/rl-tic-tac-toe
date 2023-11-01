@@ -1,17 +1,21 @@
 from tictactoe import Game
 from min_max_agent import MinMaxAgent
+from random_agent import RandomAgent
 import random
 import numpy as np
 from copy import deepcopy
 
 game = Game()
 min_max_agent = MinMaxAgent()
-
+random_agent = RandomAgent()
 
 # A drawn game
 game = Game()
 
-game.play(0, 0)
+random_agent.play(game)
+min_max_agent.play(game)
+
+game.board.show()
 
 game.play(0, 1)
 game.play(1, 2)
