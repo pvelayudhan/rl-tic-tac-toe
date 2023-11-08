@@ -9,6 +9,13 @@ class Board:
     def place_token(self, rank, file, token):
         self.squares[rank][file] = token
 
+    def calculate_hash(self):
+        game_hash = self.squares.flatten()
+        game_hash = np.array2string(game_hash)
+        game_hash = game_hash.replace(" ", "")
+        game_hash = int(game_hash[1:-1])
+        return game_hash
+
     def int_to_token(self, integer):
         if integer == 0:
             return "."
