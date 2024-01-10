@@ -64,6 +64,7 @@ class Game:
         self.turn = 0
         self.done = False
         self.p1_reward = 0
+        self.p2_reward = 0
         self.winner = None
 
     def check_winner(self):
@@ -85,33 +86,52 @@ class Game:
         if 1 in product_list:
             self.winner = 1
             self.p1_reward = 1
+            self.p2_reward = 0
             self.done = True
         elif 8 in product_list:
             self.winner = 2
             self.p1_reward = 0
+            self.p2_reward = 1
             self.done = True
         elif np.prod(self.board.squares) > 0:
             self.p1_reward = 0.5
+            self.p2_reward = 0.5
             self.done = True
 
     def play(self, rank, file):
+        # Assign token based on whether it is the turn of player 1 or player 2
+        if self.turn % 2 == 0:
+            token = 1 # it's player 1 (x) turn
+        else:
+            token = 2 # it's player 2 (o) turn
         # Ensure that the game isn't done
         if self.done is True:
-            # print("No more moves can be played. The game is over!")
+            print("No more moves can be played. The game is over!")
             return None
         # Ensure that the requested move is on the board
         if rank not in [0, 1, 2] or file not in [0, 1, 2]:
-            # print("Illegal move. That's off the board!")
-            return None
+            print("Illegal move. That's off the board!")
+            if token == 1:
+                self.winner = 2
+                self.p1_reward = -2
+                self.p2_reward = 1
+            if token == 2:
+                self.winner = 1
+                self.p1_reward = 1
+                self.p2_reward = -2
+            self.done = True
         # Ensure that the requested move is on an empty square
         if self.board.squares[rank][file] > 0:
-            # print("Illegal move. That square is occupied!")
-            return None
-        # Assign token based on whether it is the turn of player 1 or player 2
-        if self.turn % 2 == 0:
-            token = 1
-        else:
-            token = 2
+            print("Illegal move. That square is occupied!")
+            if token == 1:
+                self.winner = 2
+                self.p1_reward = -2
+                self.p2_reward = 1
+            if token == 2:
+                self.winner = 1
+                self.p1_reward = 1
+                self.p2_reward = -2
+            self.done = True
         # Play the move
         self.board.place_token(rank, file, token)
         # Refresh 'done' state and winner values
