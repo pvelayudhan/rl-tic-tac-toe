@@ -1,6 +1,5 @@
 from tictactoe import Game
 import numpy as np
-import random
 
 class RandomAgent:
     def play(self, game):
