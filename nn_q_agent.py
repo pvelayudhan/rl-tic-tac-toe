@@ -1,3 +1,4 @@
+
 from tictactoe import Game
 from random_agent import RandomAgent
 import numpy as np
@@ -23,21 +24,7 @@ Moves that are played: keep track of them, update with Q alg at end of each game
 
 # The Q-table
 Q = {}
-
-
-game = Game()
-
-game.board.show()
-
-game.play(1, 1)
-
-game.play(1, 2)
-
-game.play(0, 2)
-
-game.board.show()
-
-game.board.calculate_hash()
+S = {}
 
 # Function to choose action based on epsilon-greedy policy
 def epsilon_greedy_policy(q_values, epsilon):
@@ -46,8 +33,7 @@ def epsilon_greedy_policy(q_values, epsilon):
     else:
         return np.argmax(q_values)  # Greedy action
 
-def q_learning_play(game, qtable):
-    game.board.show()
+def q_learning_play(game, qtable, states_table):
     possible_states = list()
     # Make hashes of each possible next game state
     for x in range(3):
@@ -69,30 +55,79 @@ def q_learning_play(game, qtable):
             qtable[state_hash] = 0.5
     # Use epsilon greedy to make a move
     picked_value = epsilon_greedy_policy(q_values, 0.1)
+    states_table[game.board.calculate_hash()] = possible_states
     x, y, _ = possible_states[picked_value]
-    return(x, y, qtable)
+    return(x, y, qtable, states_table)
 
+def undo_hash(game_hash):
+    # Convert the integer hash to a string
+    game_hash_str = str(game_hash)
+    # Insert spaces to separate the digits
+    game_hash_str_spaced = ' '.join(game_hash_str)
+    # Convert the string back to a numpy array
+    game_hash_array = np.fromstring(game_hash_str_spaced, dtype=int, sep=' ')
+    # Reshape the numpy array to its original shape (3x3)
+    original_shape = (3, 3)
+    original_array = np.reshape(game_hash_array, original_shape)
+    return original_array
 
-visited_states = list()
-rewards = list()
-
-# Play through a whole game
-
-game = Game()
-game.board.show()
+# 1. Keep track of all the selected states
+# 2. The very last state gets the player reward from the game as its value
+# 3. Step backwards to the 2nd last state. Now identify, from here, of all the next possible states, the
+#    highest Q-value (make fn for this). This is max_a Q(S', a).
+# 4. Plug that value into the Q update formula:
+#    - (1 - learning rate) * the old Q + learning rate * disc fac * max_a Q(S', a)
+# 5. Repeat backwards through all the states that were selected in the game
 
 random_agent = RandomAgent()
+visited_states = list()
+rewards = list()
+game = Game()
+gamma = 0.95
+alpha = 0.95
 
-
-game.board.show()
-
+# put all this inside 100 games e.g.
+###############################################################################
 while not game.done:
     # Q-agent is P1
-    x, y, Q = q_learning_play(game, Q)
+    x, y, Q, S = q_learning_play(game, Q, S)
     game.play(x, y)
+    print("Q-agent turn:")
+    game.board.show()
+    visited_state = game.board.calculate_hash()
+    visited_states.append(visited_state)
+    if game.done:
+        break
     # Random Agent is P2
     random_agent.play(game)
-# Store visited states of that game and associated rewards
+    print("Random agent turn:")
+    game.board.show()
+
+rewards.append(game.p1_reward)
+
+# Reverse the visited_states list:
+
+rev_states = visited_states[::-1]
+
+for i in range(len(rev_states)):
+    state = rev_states[i]
+    if i == 0:
+       Q[state] = game.p1_reward
+    else:
+        Q[state]
+        print(state)
+
+#    (1 - learning rate) * the old Q + learning rate * disc fac * max_a Q(S', a)
+
+for state, index in reversed(visited_states):
+    print(state)
+    print(index)
+
+undo_hash(visited_states[1])
+
+
+###############################################################################
+
 
 game.board.show()
 
@@ -101,7 +136,7 @@ game.board.show()
 At the end of each game update the Q value of all moves in the game according to the game result.
 For a win we will award a reward of 1 to the last move, for a loss a reward of 0 and for a draw we will give a reward of 0.5.
 
-The final move will get the reward as its new Q value. For all the other moves in that game we will use the following formula 
+The final move will get the reward as its new Q value. For all the other moves in that game we will use the following formula
 
 Q(S, A) = gamma * max_a Q(S', a)
 
@@ -113,7 +148,7 @@ S can lead to:
     Sc
 And Sb is the highest value state out of Sa, Sb, Sc, then
 
-""" 
+"""
 
 
 
