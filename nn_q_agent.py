@@ -5,6 +5,8 @@ import numpy as np
 #import tensorflow as tf
 from copy import deepcopy
 
+import matplotlib.pyplot as plt
+
 """
 1. (done) Convert the given board into board state
 2. (done) Look up the board state in the Q-table:
@@ -66,10 +68,37 @@ def undo_hash(game_hash):
     game_hash_str_spaced = ' '.join(game_hash_str)
     # Convert the string back to a numpy array
     game_hash_array = np.fromstring(game_hash_str_spaced, dtype=int, sep=' ')
+    print(type(game_hash_array))
+    while len(game_hash_array) < 9:
+        game_hash_array = np.concatenate(([0], game_hash_array))
+    print(game_hash_array)
     # Reshape the numpy array to its original shape (3x3)
     original_shape = (3, 3)
     original_array = np.reshape(game_hash_array, original_shape)
     return original_array
+
+def extract_max_possible_q(state, Q):
+    squares = undo_hash(state)
+    # Setting up the game from the given state
+    game = Game()
+    game.board.squares = squares
+    game.turn = np.sum(game.board.squares != 0)
+    # Explore possible next states
+    max_Q = 0
+    for x in range(3):
+        for y in range(3):
+            if game.board.squares[x][y] == 0:
+                game_copy = deepcopy(game)
+                game_copy.play(x, y)
+                possible_state = game_copy.board.calculate_hash()
+                if possible_state in Q:
+                    if Q[possible_state] > max_Q:
+                        max_Q = Q[possible_state]
+                else:
+                    Q[possible_state] = 0.5
+                    if Q[possible_state] > max_Q:
+                        max_Q = Q[possible_state]
+    return max_Q
 
 # 1. Keep track of all the selected states
 # 2. The very last state gets the player reward from the game as its value
@@ -79,51 +108,63 @@ def undo_hash(game_hash):
 #    - (1 - learning rate) * the old Q + learning rate * disc fac * max_a Q(S', a)
 # 5. Repeat backwards through all the states that were selected in the game
 
-random_agent = RandomAgent()
-visited_states = list()
+# put all this inside 100 games e.g.
+###############################################################################
+
+Q = {}
+
 rewards = list()
-game = Game()
 gamma = 0.95
 alpha = 0.95
 
-# put all this inside 100 games e.g.
-###############################################################################
-while not game.done:
-    # Q-agent is P1
-    x, y, Q, S = q_learning_play(game, Q, S)
-    game.play(x, y)
-    print("Q-agent turn:")
-    game.board.show()
-    visited_state = game.board.calculate_hash()
-    visited_states.append(visited_state)
-    if game.done:
-        break
-    # Random Agent is P2
-    random_agent.play(game)
-    print("Random agent turn:")
-    game.board.show()
+for i in range(1000):
+    random_agent = RandomAgent()
+    visited_states = list()
+    game = Game()
+    while not game.done:
+        # Q-agent is P1
+        x, y, Q, S = q_learning_play(game, Q, S)
+        game.play(x, y)
+        print("Q-agent turn:")
+        # game.board.show()
+        visited_state = game.board.calculate_hash()
+        print(visited_state)
+        visited_states.append(visited_state)
+        if game.done:
+            break
+        # Random Agent is P2
+        random_agent.play(game)
+        #print("Random agent turn:")
+        #game.board.show()
+    # Keep track of q-agent's rewards for our own monitoring
+    #rewards.append(game.p1_reward)
+    # Update Q table by working backwards through visited states
+    #rev_states = visited_states[::-1]
+    #for i in range(len(rev_states)):
+    #    state = rev_states[i]
+    #    if i == 0:
+    #        Q[state] = game.p1_reward
+    #    else:
+    #        max_next_q = extract_max_possible_q(state, Q)
+    #        Q[state] = ((1 - gamma) * Q[state]) + gamma * alpha * max_next_q
 
-rewards.append(game.p1_reward)
 
-# Reverse the visited_states list:
 
-rev_states = visited_states[::-1]
+print(Q)
 
-for i in range(len(rev_states)):
-    state = rev_states[i]
-    if i == 0:
-       Q[state] = game.p1_reward
-    else:
-        Q[state]
-        print(state)
+print(rewards)
 
-#    (1 - learning rate) * the old Q + learning rate * disc fac * max_a Q(S', a)
+plt.scatter(range(len(rewards)), rewards)
 
-for state, index in reversed(visited_states):
-    print(state)
-    print(index)
+plt.show()
 
-undo_hash(visited_states[1])
+game = Game()
+
+game.play(0, 0)
+
+game.board.show()
+
+undo_hash(game.board.calculate_hash())
 
 
 ###############################################################################
