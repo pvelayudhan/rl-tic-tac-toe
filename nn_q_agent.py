@@ -1,11 +1,8 @@
-
 from tictactoe import Game
 from random_agent import RandomAgent
 import numpy as np
 #import tensorflow as tf
 from copy import deepcopy
-
-import matplotlib.pyplot as plt
 
 """
 1. (done) Convert the given board into board state
@@ -68,10 +65,8 @@ def undo_hash(game_hash):
     game_hash_str_spaced = ' '.join(game_hash_str)
     # Convert the string back to a numpy array
     game_hash_array = np.fromstring(game_hash_str_spaced, dtype=int, sep=' ')
-    print(type(game_hash_array))
     while len(game_hash_array) < 9:
         game_hash_array = np.concatenate(([0], game_hash_array))
-    print(game_hash_array)
     # Reshape the numpy array to its original shape (3x3)
     original_shape = (3, 3)
     original_array = np.reshape(game_hash_array, original_shape)
@@ -112,12 +107,12 @@ def extract_max_possible_q(state, Q):
 ###############################################################################
 
 Q = {}
-
 rewards = list()
 gamma = 0.95
 alpha = 0.95
 
-for i in range(1000):
+for i in range(10000):
+    print(f"Game {i}")
     random_agent = RandomAgent()
     visited_states = list()
     game = Game()
@@ -125,10 +120,8 @@ for i in range(1000):
         # Q-agent is P1
         x, y, Q, S = q_learning_play(game, Q, S)
         game.play(x, y)
-        print("Q-agent turn:")
         # game.board.show()
         visited_state = game.board.calculate_hash()
-        print(visited_state)
         visited_states.append(visited_state)
         if game.done:
             break
@@ -137,125 +130,32 @@ for i in range(1000):
         #print("Random agent turn:")
         #game.board.show()
     # Keep track of q-agent's rewards for our own monitoring
-    #rewards.append(game.p1_reward)
+    rewards.append(game.p1_reward)
     # Update Q table by working backwards through visited states
-    #rev_states = visited_states[::-1]
-    #for i in range(len(rev_states)):
-    #    state = rev_states[i]
-    #    if i == 0:
-    #        Q[state] = game.p1_reward
-    #    else:
-    #        max_next_q = extract_max_possible_q(state, Q)
-    #        Q[state] = ((1 - gamma) * Q[state]) + gamma * alpha * max_next_q
+    rev_states = visited_states[::-1]
+    for i in range(len(rev_states)):
+        state = rev_states[i]
+        if i == 0:
+            Q[state] = game.p1_reward
+        else:
+            max_next_q = extract_max_possible_q(state, Q)
+            Q[state] = ((1 - gamma) * Q[state]) + gamma * alpha * max_next_q
 
-
-
-print(Q)
-
-print(rewards)
-
-plt.scatter(range(len(rewards)), rewards)
-
-plt.show()
-
-game = Game()
-
-game.play(0, 0)
-
-game.board.show()
-
-undo_hash(game.board.calculate_hash())
-
-
-###############################################################################
-
-
-game.board.show()
-
-
-"""
-At the end of each game update the Q value of all moves in the game according to the game result.
-For a win we will award a reward of 1 to the last move, for a loss a reward of 0 and for a draw we will give a reward of 0.5.
-
-The final move will get the reward as its new Q value. For all the other moves in that game we will use the following formula
-
-Q(S, A) = gamma * max_a Q(S', a)
-
-Q(S, A) = (1 - alpha) * Q(S, A) + alpha*gamma*(Q value of the best state following S)
-
-S can lead to:
-    Sa OR
-    Sb OR
-    Sc
-And Sb is the highest value state out of Sa, Sb, Sc, then
-
-"""
-
-
-
-
-game.play(1, 1)
-
-game.winner
-
-
-
-## Function to create the Q-network
-#def create_dueling_q_network(input_shape, output_size):
-#    # Define the input layer
-#    input_layer = tf.keras.layers.Input(shape=input_shape)
-#    # Shared dense layers for the value and advantage streams
-#    shared_dense = tf.keras.layers.Dense(32, activation='relu')(input_layer)
-#    # Value stream
-#    value_stream = tf.keras.layers.Dense(1)(shared_dense)
-#    # Advantage stream
-#    advantage_stream = tf.keras.layers.Dense(output_size)(shared_dense)
-#    # Combine value and advantage streams to get Q-value
-#    q_values = value_stream + (advantage_stream - tf.reduce_mean(advantage_stream, axis=1, keepdims=True))
-#    model = tf.keras.models.Model(inputs=input_layer, outputs=q_values)
-#    return model
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-# Define a Sequential model
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(128, activation='relu', input_shape=(9,)),  # Input layer with ReLU activation
-    tf.keras.layers.Dense(64, activation='relu'),  # Hidden layer with ReLU activation
-    tf.keras.layers.Dense(1)  # Output layer (no activation for regression tasks)
-])
-
-model.predict(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9]).reshape(1, 9))
-
-model.predict(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9]))
-
-
-game
-
-
-state = game.board.calculate_hash()
-
-print(state)
-
-Q[(state, state)] = 3
-"""
+Q2 = {}
+# Check Q-agent performance vs. random agent after 100 games
+evaluation_rewards = list()
+for i in range(100):
+    random_agent = RandomAgent()
+    game = Game()
+    while not game.done:
+        # Q-agent is P1
+        x, y, Q2, S = q_learning_play(game, Q2, S)
+        game.play(x, y)
+        # game.board.show()
+        if game.done:
+            break
+        # Random Agent is P2
+        random_agent.play(game)
+    # Keep track of q-agent's rewards for our own monitoring
+    evaluation_rewards.append(game.p1_reward)
+np.mean(evaluation_rewards)
