@@ -1,10 +1,10 @@
+import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
 from tictactoe import Board, Game
 from random_agent import RandomAgent
+import matplotlib.pyplot as plt
+from copy import deepcopy
 
 # Get cpu, gpu or mps device for training.
 device = (
@@ -12,6 +12,82 @@ device = (
     if torch.cuda.is_available()
     else "mps" if torch.backends.mps.is_available() else "cpu"
 )
+
+
+class TicTacToeNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(18, 18),
+            nn.ReLU(),
+            nn.Linear(18, 18),
+            nn.ReLU(),
+            nn.Linear(18, 18),
+            nn.ReLU(),
+            nn.Linear(18, 18),
+            nn.ReLU(),
+            nn.Linear(18, 1),
+        )
+
+    def forward(self, x):
+        logits = self.linear_relu_stack(x)
+        # x = torch.relu(self.fc1(x))  # Apply ReLU activation to the output of the first layer
+        # x = self.fc2(x)              # Apply the second linear transformation
+        return logits
+
+
+model = TicTacToeNN().to(device)
+loss_fn = nn.CrossEntropyLoss()
+criterion = torch.nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+
+
+def epsilon_greedy_policy(q_values, epsilon):
+    if np.random.rand() < epsilon:
+        return np.random.randint(len(q_values))  # Random action
+    else:
+        return np.argmax(q_values)  # Greedy action
+
+
+def train_data(data, model):
+    num_epochs = 50
+
+    for epoch in range(num_epochs):
+        # output = []
+        for squares, q in data:
+            model.train()
+
+            predicted_q = model(squares)
+            target_q = q
+
+            loss = criterion(predicted_q, target_q)  # find out why this is working.
+            # Zero the gradients
+            optimizer.zero_grad()
+
+            # # Forward pass
+            # output.append(model(squares))
+
+            # # Compute the loss
+            # loss = criterion(output, q)
+
+            # Backward pass
+            loss.backward()
+
+            # Update the weights
+            optimizer.step()
+
+    # model.train()
+    # loss = loss_fn(torch.tensor(predictive_qs), torch.tensor(target_qs))
+    # optimizer.zero_grad()
+    # loss.backward()
+    # optimizer.step()
+
+
+Q = {}
+rewards = list()
+gamma = 0.95
+alpha = 0.95
 
 
 def board_conversion_to_2x9(squares):
@@ -33,39 +109,11 @@ def board_conversion_to_2x9(squares):
     return torch.tensor(x + o).float()
 
 
-class TicTacToeNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(18, 18), nn.ReLU(), nn.Linear(18, 1)
-        )
-
-    def forward(self, x):
-        logits = self.linear_relu_stack(x)
-        # x = torch.relu(self.fc1(x))  # Apply ReLU activation to the output of the first layer
-        # x = self.fc2(x)              # Apply the second linear transformation
-        return logits
-
-
-model = TicTacToeNN().to(device)
-loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-
-
-def epsilon_greedy_policy(q_values, epsilon):
-    if np.random.rand() < epsilon:
-        return np.random.randint(len(q_values))  # Random action
-    else:
-        return np.argmax(q_values)  # Greedy action
-
-
 def nn_play(game, model):
     possible_states = list()
     # Make hashes of each possible next game state
     for x in range(3):
         for y in range(3):
-            # print(f"x: {x} | y: {y} | value: {game.board.squares[x][y]}")
             if game.board.squares[x][y] == 0:
                 game_copy = deepcopy(game)
                 game_copy.play(x, y)
@@ -80,70 +128,6 @@ def nn_play(game, model):
     picked_value = epsilon_greedy_policy(q_values, 0.1)
     x, y, _ = possible_states[picked_value]
     return (x, y, q_values[picked_value])
-
-
-# random_agent = RandomAgent()
-# visited_states = []
-# game = Game()
-# while not game.done:
-#     x, y, Q = nn_play(game, model)
-#     game.play(x, y)
-#     visited_state = game.board.squares
-#     visited_states.append((visited_state, Q))
-#     if game.done:
-#         break
-#     random_agent.play(game)
-
-# print(visited_states)
-# print(game.board.show())
-
-# def train(data, model, loss_fn, optimizer):
-#     model.train()
-#     for i in something:
-#         X = board_conversion_to_2x9(board.squares)
-
-#         # Compute prediction error
-#         move_qvalues = model(X)
-#         move_we_pick = epsilon_greedy_policy(move_qvalues, .9)
-#         # Somehow keep track of move we made / state we picked
-#         # repeat all this for a whole game
-#         # calculate Q values for all the states we visited based on the Q value formula
-#         loss = loss_fn(move_qvalues, Q_vals_we_calc_from_formula)
-
-#         # Backpropagation
-#         loss.backward()
-#         optimizer.step()
-#         optimizer.zero_grad()
-
-#         if batch % 100 == 0:
-#             loss, current = loss.item(), (batch + 1) * len(X)
-#             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-
-criterion = torch.nn.MSELoss()
-
-
-def train_data(data, model):
-    num_epochs = 5
-
-    for epoch in range(num_epochs):
-        total_loss = 0
-        for squares, q in data:
-            # Zero the gradients
-            optimizer.zero_grad()
-
-            # Forward pass
-            output = model(squares)
-
-            # Compute the loss
-            loss = criterion(output, q)
-
-            # Backward pass
-            loss.backward()
-
-            # Update the weights
-            optimizer.step()
-
-            total_loss += loss.item()
 
 
 def extract_max_possible_q(squares, model):
@@ -167,8 +151,9 @@ def extract_max_possible_q(squares, model):
 training_data = []
 rewards = []
 
-for i in range(10001):
-    # print(f"Game {i}")
+win_perc = []
+
+for i in range(1001):
     random_agent = RandomAgent()
     visited_states = list()
     game = Game()
@@ -201,7 +186,9 @@ for i in range(10001):
 
     if i % 100 == 0 and i != 0:
         # train the training data for the model
-        # print(training_data)
+        # predictive_qs = [model(squares) for squares, qs in training_data]
+        # target_qs = [qs for squares, qs in training_data]
+
         train_data(training_data, model)
 
         win_count = 0
@@ -217,8 +204,19 @@ for i in range(10001):
             else:
                 lose_count += 1
 
+        win_perc.append(win_count / 100)
+
         print("win % : ", format(win_count / 100, ".0%"))
         print("tie % : ", format(tie_count / 100, ".0%"))
         print("lose % : ", format(lose_count / 100, ".0%"))
 
         training_data = []
+
+win_numbers = [int(item.strip("%")) for item in win_perc]
+
+# data to be plotted
+x = np.arange(0, len(win_numbers))
+
+# plotting
+plt.plot(x, win_numbers)
+plt.show()
